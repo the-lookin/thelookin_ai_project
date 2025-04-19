@@ -1,12 +1,27 @@
+import os
+from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 from openai import OpenAI
+import argparse
+
+load_dotenv()
 
 
-TELEGRAM_API_KEY = ""
-OPENAI_API_KEY = ""
+TELEGRAM_API_KEY = os.getenv("TELEGRAM_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+PROXY_API_KEY = os.getenv("PROXY_API_KEY")
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+parser = argparse.ArgumentParser()
+parser.add_argument('--ai', choices=['openai', 'proxyapi'], default='openai', help='Выберите тип клиента AI')
+args = parser.parse_args()
+
+if args.ai == 'openai':
+    client = OpenAI(api_key=OPENAI_API_KEY)
+elif args.ai == 'proxyapi':
+    client = OpenAI(api_key=PROXY_API_KEY, base_url="https://api.proxyapi.ru/openai/v1")
+else:
+    raise ValueError('Неизвестный AI клиент')
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Hello {update.effective_user.first_name}')
